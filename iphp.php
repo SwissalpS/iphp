@@ -33,6 +33,12 @@ class iphp
     const OPT_PHP_BIN       = 'php_bin';
     const OPT_COMMANDS      = 'commands';
 
+    // 20100502_210355 SwissalpS added this var to enable the app to stay
+    // running or turned off by a command that may want to transfer input
+    // reading somewhere else etc.
+    // basically flow control - bool flag
+    var $bRunning = true;
+
     /**
      * Constructor
      *
@@ -145,7 +151,8 @@ class iphp
 
     private function initializeCommands()
     {
-        $commandsToLoad = array('iphp_command_exit', 'iphp_command_reload', 'iphp_command_help');
+    	// 20100502_210355 SwissalpS added 'iphp_command_stop' to default commands
+        $commandsToLoad = array('iphp_command_exit', 'iphp_command_reload', 'iphp_command_help', 'iphp_command_stop');
         $commandsToLoad = array_merge($commandsToLoad, $this->options[self::OPT_COMMANDS]);
         $this->internalCommands = array();
         foreach ($commandsToLoad as $commandName) {
@@ -388,7 +395,10 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
 
     public function stop()
     {
-        // no-op
+        // 20100502_210355 SwissalpS added this var to enable the app to stay
+   	// running or turned off by a command that may want to transfer input
+    	// reading somewhere else etc.
+        $this->bRunning = false;
     }
 
     public function runREPL()
@@ -413,19 +423,21 @@ file_put_contents('{$this->tmpFileShellCommandState}', serialize(\$__allData));
             readline_completion_function(array($this, 'readlineCompleter'));
         }
 
+	$this->bRunning = true; // 20100502_210355 SwissalpS added switch
+
         // run repl loop.
         if (function_exists('readline'))
         {
             // readline automatically re-prints the prompt after the callback runs, so the only way to prevent double-prompts is to do it this way until we figure out something better
             readline_callback_handler_install($this->inputPrompt, array($this, 'doCommand'));
-            while (true)
+            while ($this->bRunning) // 20100502_210355 SwissalpS replaced 'true' with '$this->bRunning'
             {
                 $this->realReadline();
             }
         }
         else
         {
-            while (true)
+            while ($this->bRunning) // 20100502_210355 SwissalpS replaced 'true' with '$this->bRunning'
             {
                 $this->fakeReadline();
             }
