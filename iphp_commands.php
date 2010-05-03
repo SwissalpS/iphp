@@ -49,3 +49,20 @@ class iphp_command_reload extends iphp_command
     }
 }
 
+// 20100502_210355 SwissalpS added this command to enable the app to stay
+// 
+class extends iphp_command
+{
+    function run($shell, $args)
+    {
+        $shell->stop(); //$shell->bRunning = false;
+    }
+    function name()
+    {
+        return 'stop';
+    }
+    function help()
+    {
+        return "stop iphp from listening to commands";
+    }
+} // iphp_command_stop
